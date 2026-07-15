@@ -1,0 +1,14 @@
+# credentials — never commit
+.env
+*.env
+
+# generated / runtime
+dist/
+.wenyan-runtime/
+node_modules/
+__pycache__/
+*.pyc
+
+# OS noise
+.DS_Store
+Thumbs.db
