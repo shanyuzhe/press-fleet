@@ -28,6 +28,7 @@ signals in (radar + reader feedback) -> topic desk -> evidence base -> per-platf
 | Human-voice cold read | [references/human-voice-pass.md](references/human-voice-pass.md) |
 | AI-pattern diagnostic (Chinese-adapted) | [references/ai-pattern-pass.md](references/ai-pattern-pass.md) |
 | Sentence-level copyedit gate (hash-bound) | [references/copyedit-pass.md](references/copyedit-pass.md) |
+| Guest audit: cross-model cold review | [references/guest-audit.md](references/guest-audit.md) |
 | Research method for writing | [references/writing-research.md](references/writing-research.md) |
 | WeChat publishing | [references/platforms/wechat.md](references/platforms/wechat.md) |
 | X adaptation | [references/platforms/x.md](references/platforms/x.md) |

@@ -1,10 +1,20 @@
 #!/usr/bin/env python3
-"""Bridge project content packages to the pinned Wenyan CLI.
+"""Bridge press-fleet content packages to the pinned Wenyan CLI.
 
 Wenyan owns Markdown rendering, image uploads, and WeChat API calls. This file
-only adapts the project's content-package schema and enforces local release
-gates. The default is preview/dry-run; ``draft --execute`` is the only command
-that can create an external WeChat draft.
+only adapts the content-package schema and enforces local release gates. The
+default is preview/dry-run; ``draft --execute`` is the only command that can
+create an external WeChat draft.
+
+Dependencies: Python 3.9+, PyYAML (``pip install pyyaml``), and the Wenyan CLI
+installed at your platform root: ``npm install @wenyan-md/cli@2.0.11``.
+
+The *platform root* is the directory that owns the Wenyan install
+(``node_modules``), the credential file (``.env``), and the runtime cache
+(``.wenyan-runtime``) — typically the directory that contains your content
+packages (created by ``/press-init``). It is discovered by walking up from the
+content package; set the ``PRESS_PLATFORM_ROOT`` environment variable to
+override.
 """
 
 from __future__ import annotations
@@ -32,18 +42,8 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 
-WORKSPACE_ROOT = Path(__file__).resolve().parents[2]
-WECHAT_ROOT = Path(__file__).resolve().parents[1]
-WENYAN_CMD = WECHAT_ROOT / "node_modules" / ".bin" / "wenyan.cmd"
-VALIDATOR = (
-    WORKSPACE_ROOT
-    / ".agents"
-    / "skills"
-    / "self-media-ops"
-    / "scripts"
-    / "validate_content_package.py"
-)
-WENYAN_RUNTIME = WECHAT_ROOT / ".wenyan-runtime"
+TOOLS_DIR = Path(__file__).resolve().parent
+VALIDATOR = TOOLS_DIR / "validate_content_package.py"
 
 FRONTMATTER_RE = re.compile(r"\A---\s*\r?\n(.*?)\r?\n---\s*\r?\n(.*)\Z", re.S)
 MD_IMAGE_RE = re.compile(r"(!\[[^\]]*\]\()(?P<target><[^>]+>|[^)\s]+)(?P<tail>[^)]*\))")
@@ -65,6 +65,34 @@ WENYAN_NOTES = [
 
 class WorkflowError(RuntimeError):
     """A user-actionable workflow failure."""
+
+
+def wenyan_binary_name() -> str:
+    return "wenyan.cmd" if os.name == "nt" else "wenyan"
+
+
+def find_platform_root(package: Path) -> Path:
+    """Locate the directory that owns node_modules, .env, and .wenyan-runtime.
+
+    Honors PRESS_PLATFORM_ROOT; otherwise walks up from the content package.
+    """
+    override = os.environ.get("PRESS_PLATFORM_ROOT")
+    if override:
+        root = Path(override).resolve()
+        if not (root / "node_modules" / ".bin" / wenyan_binary_name()).is_file():
+            raise WorkflowError(
+                f"PRESS_PLATFORM_ROOT has no Wenyan install: {root}. "
+                "Run `npm install @wenyan-md/cli@2.0.11` there first."
+            )
+        return root
+    for candidate in (package, *package.parents):
+        if (candidate / "node_modules" / ".bin" / wenyan_binary_name()).is_file():
+            return candidate
+    raise WorkflowError(
+        "Wenyan CLI not found on the path from the content package upward. "
+        "Run `npm install @wenyan-md/cli@2.0.11` in your platform root (the "
+        "directory that contains your content packages), or set PRESS_PLATFORM_ROOT."
+    )
 
 
 @dataclass(frozen=True)
@@ -194,34 +222,31 @@ def prepare_source(package: Path) -> tuple[Path, dict[str, Any], PublishConfig, 
     return source_path, metadata, config, clean_body
 
 
-def wenyan_args(command: str, source: Path, config: PublishConfig) -> list[str]:
-    if not WENYAN_CMD.is_file():
-        raise WorkflowError(
-            "Wenyan is not installed. Run `npm.cmd install` inside 微信公众号 first."
-        )
-    args = [str(WENYAN_CMD), command, "-f", str(source), "-t", config.theme, "-h", config.highlight]
+def wenyan_args(command: str, source: Path, config: PublishConfig, platform_root: Path) -> list[str]:
+    wenyan_cmd = platform_root / "node_modules" / ".bin" / wenyan_binary_name()
+    args = [str(wenyan_cmd), command, "-f", str(source), "-t", config.theme, "-h", config.highlight]
     args.append("--mac-style" if config.mac_style else "--no-mac-style")
     args.append("--footnote" if config.footnote else "--no-footnote")
     return args
 
 
-def wenyan_environment() -> dict[str, str]:
-    """Keep Wenyan token/material caches private and local to this project."""
+def wenyan_environment(platform_root: Path) -> dict[str, str]:
+    """Keep Wenyan token/material caches private and local to the platform root."""
     environment = os.environ.copy()
-    environment["XDG_CONFIG_HOME"] = str(WENYAN_RUNTIME)
+    environment["XDG_CONFIG_HOME"] = str(platform_root / ".wenyan-runtime")
     return environment
 
 
-def run_wenyan_render(source: Path, config: PublishConfig) -> str:
+def run_wenyan_render(source: Path, config: PublishConfig, platform_root: Path) -> str:
     result = subprocess.run(
-        wenyan_args("render", source, config),
-        cwd=WECHAT_ROOT,
+        wenyan_args("render", source, config, platform_root),
+        cwd=platform_root,
         capture_output=True,
         text=True,
         encoding="utf-8",
         errors="replace",
         check=False,
-        env=wenyan_environment(),
+        env=wenyan_environment(platform_root),
     )
     if result.returncode != 0:
         detail = (result.stderr or result.stdout).strip()
@@ -256,9 +281,13 @@ def inline_preview_images(fragment: str, package: Path) -> str:
 
 
 def validator_report(package: Path) -> tuple[bool, str]:
+    if not VALIDATOR.is_file():
+        raise WorkflowError(
+            f"validator not found next to this tool: {VALIDATOR}. "
+            "Keep validate_content_package.py and wechat_publish.py in the same directory."
+        )
     result = subprocess.run(
         [sys.executable, str(VALIDATOR), str(package)],
-        cwd=WORKSPACE_ROOT,
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -340,12 +369,15 @@ def preview_document(title: str, fragment: str, validator_ok: bool, report: str,
 <main class="phone"><h1 class="title">{html.escape(title)}</h1>{fragment}</main></body></html>"""
 
 
-def build_preview(package_arg: str | Path) -> tuple[Path, Path, dict[str, Any], PublishConfig, list[str]]:
+def build_preview(
+    package_arg: str | Path,
+) -> tuple[Path, Path, dict[str, Any], PublishConfig, list[str], Path]:
     package = Path(package_arg).resolve()
     if not package.is_dir():
         raise WorkflowError(f"content package is not a directory: {package}")
+    platform_root = find_platform_root(package)
     source, metadata, config, _ = prepare_source(package)
-    rendered = run_wenyan_render(source, config)
+    rendered = run_wenyan_render(source, config, platform_root)
     rendered_for_preview = inline_preview_images(rendered, package)
     validator_ok, report = validator_report(package)
     blockers = publication_blockers(package, metadata, config)
@@ -381,11 +413,11 @@ def build_preview(package_arg: str | Path) -> tuple[Path, Path, dict[str, Any], 
             print(f"- {item}")
     for item in WENYAN_NOTES:
         print(f"[wenyan note] {item}")
-    return preview_path, source, metadata, config, blockers
+    return preview_path, source, metadata, config, blockers, platform_root
 
 
 def command_preview(args: argparse.Namespace) -> int:
-    preview_path, _, _, _, _ = build_preview(args.package)
+    preview_path, _, _, _, _, _ = build_preview(args.package)
     if args.open:
         if os.name != "nt":
             raise WorkflowError("--open is currently implemented for Windows only")
@@ -394,7 +426,7 @@ def command_preview(args: argparse.Namespace) -> int:
 
 
 def command_draft(args: argparse.Namespace) -> int:
-    _, source, metadata, config, blockers = build_preview(args.package)
+    _, source, metadata, config, blockers, platform_root = build_preview(args.package)
     validator_ok, report = validator_report(Path(args.package).resolve())
     if not args.execute:
         print("[dry-run] no network call or external write was performed; add --execute to create one draft")
@@ -403,14 +435,15 @@ def command_draft(args: argparse.Namespace) -> int:
         raise WorkflowError(f"content-package validator blocks draft creation:\n{report}")
     if blockers:
         raise WorkflowError("draft creation is blocked:\n- " + "\n- ".join(blockers))
-    env_path = Path(args.env).resolve() if args.env else WECHAT_ROOT / ".env"
+    env_path = Path(args.env).resolve() if args.env else platform_root / ".env"
     if not env_path.is_file():
         raise WorkflowError(
-            "credential file is missing. Copy 微信公众号/.env.example to 微信公众号/.env and fill it locally; never paste the secret into chat."
+            f"credential file is missing: {env_path}. Copy .env.example to your platform "
+            "root as .env and fill it locally; never paste the secret into chat."
         )
-    command = wenyan_args("publish", source, config) + ["--env-file", str(env_path)]
+    command = wenyan_args("publish", source, config, platform_root) + ["--env-file", str(env_path)]
     print("[execute] invoking pinned Wenyan CLI to upload assets and create one WeChat draft")
-    result = subprocess.run(command, cwd=WECHAT_ROOT, env=wenyan_environment(), check=False)
+    result = subprocess.run(command, cwd=platform_root, env=wenyan_environment(platform_root), check=False)
     if result.returncode != 0:
         raise WorkflowError(f"Wenyan publish failed with exit code {result.returncode}")
     record = {

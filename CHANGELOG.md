@@ -2,6 +2,14 @@
 
 All SOP and framework changes land here with rationale. Articles cite the version that produced them (`本篇由 press-fleet SOP vX.Y 生产`).
 
+## v0.1.3 — 2026-07-16
+
+Adoption blockers and the peer-review MVP.
+
+- **tools/wechat_publish.py is now workspace-independent.** Signal: the tool was extracted from a private workspace and still resolved the validator via a hardcoded `.agents/skills/...` path, assumed a `微信公众号/` directory layout, and shelled a Windows-only `wenyan.cmd` — a fresh clone could not run it at all. Now: validator resolves next to the tool; the platform root (Wenyan install, `.env`, runtime cache) is discovered by walking up from the content package, with a `PRESS_PLATFORM_ROOT` override; the Wenyan binary name is cross-platform. Both the missing-install error path and a full preview render were tested against the demo package from a clean clone layout.
+- **.env.example** shipped at the repo root; the WeChat platform reference rewritten for the generic setup (npm + PyYAML + platform-root layout).
+- **references/guest-audit.md**: the cross-model guest audit protocol — the single-fleet version of stage-3 cross-fleet peer review. A cold reviewer from a different model family gets the draft only (no notes, no tools — untrusted-content discipline), reports `GUEST-*` defects in the shared taxonomy, and every finding gets a recorded in-house triage. Same exchange shape as the future fleet network, debuggable today.
+
 ## v0.1.2 — 2026-07-16
 
 Positioning grounded in a sourced investigation of the existing self-media SOP ecosystem (signal: operator-directed competitive research, 2026-07-16).
