@@ -2,6 +2,14 @@
 
 All SOP and framework changes land here with rationale. Articles cite the version that produced them (`本篇由 press-fleet SOP vX.Y 生产`).
 
+## v0.1.2 — 2026-07-16
+
+Positioning grounded in a sourced investigation of the existing self-media SOP ecosystem (signal: operator-directed competitive research, 2026-07-16).
+
+- **docs/why.md**: the problem statement, fully sourced — SOPs as unenforceable documents (81% adoption / 13% policy), the bare quality floor (real penalty cases: administrative detention, a 2.6M CNY defamation judgment, copyright troll settlements), and the post-crackdown "AI-score laundering" gray industry that fights detectors instead of fixing content.
+- **README repositioned**: leads with the April 2026 platform crackdown and the anti-score-laundering stance ("instead of hiding the AI, make the production process auditable"); states the deliberate battleground — Claude Code and Codex, AI-native creators, no web-tool version.
+- **Boundaries made explicit**: no virality guarantees, no score laundering ever, full pipeline is intentionally heavier than "just post it".
+
 ## v0.1.1 — 2026-07-16
 
 Two SOP changes, each triggered by a real editorial round; plus onboarding and CI.

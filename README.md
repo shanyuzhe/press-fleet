@@ -6,9 +6,13 @@
 
 Sibling project of [research-fleet](https://github.com/shanyuzhe/research-fleet): research-fleet staffs a research project with an AI team that doesn't cut corners; press-fleet staffs a media operation with an AI newsroom that doesn't cut corners on readers.
 
+## Why it exists
+
+Since April 2026, major Chinese platforms have been cracking down on low-quality AI content — throttling, deletion, account bans. The market's dominant answer is a gray industry of "AI-score laundering" tools that disguise AI text from detectors. press-fleet goes the opposite way: **instead of hiding the AI, it makes the production process auditable.** Platforms punish low quality, not AI; provable quality outlasts disguised scores. Full problem statement with sources (zh): [docs/why.md](docs/why.md).
+
 ## What it does
 
-Signals in (tiered source radar + reader feedback) → topic desk → platform-agnostic evidence base → a six-role editorial pipeline → deterministic quality gates → user-authorized publishing → retro → a versioned SOP revision. Every published article cites the SOP version that produced it.
+Signals in (tiered source radar + reader feedback) → topic desk → platform-agnostic evidence base → a six-role editorial pipeline → deterministic quality gates → user-authorized publishing → retro → a versioned SOP revision. Every published article cites the SOP version that produced it. Primary battleground: Claude Code and Codex — press-fleet serves AI-native creators; there is no web-tool version planned.
 
 Mechanisms worth stealing even if you never install it:
 
