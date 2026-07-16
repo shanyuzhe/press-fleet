@@ -2,6 +2,15 @@
 
 All SOP and framework changes land here with rationale. Articles cite the version that produced them (`本篇由 press-fleet SOP vX.Y 生产`).
 
+## v0.1.1 — 2026-07-16
+
+Two SOP changes, each triggered by a real editorial round; plus onboarding and CI.
+
+- **ai-pattern-pass, group 3: verdict-reframe reuse.** Signal: a filed article passed all gates, then user review found the construction "比 X 更要紧的是 Y" used four times across one piece (2026-07-15, Apple filing article, defects HUMAN-AI-005~009). One reframe is a stance; four is a tic. Now an explicit symptom.
+- **ai-pattern-pass, group 3: the argument treadmill.** Signal: a second article restated its core thesis five times — opening, section endings, an image caption, and the closing — with near-identical wording (2026-07-16, GPT-Red article, defects HUMAN-AI-006~008). Neither the cold read nor the sentence gate catches cross-position repetition. New rule: every return to the thesis must carry a new fact, boundary, or consequence; captions must add information the prose does not state. Recorded as lesson 8 in docs/lessons.md.
+- **examples/demo-package**: a minimal complete content package that passes the validator, with a hands-on "edit one character, watch the hash gate fail" experiment. Doubles as the CI fixture.
+- **CI**: GitHub Actions runs the validator against the demo package on every push and PR — the spec, the validator, and the hash gate must always agree.
+
 ## v0.1.0 — 2026-07-15
 
 Initial open-book release. Extracted from a private WeChat operation that ran this system through 8 content packages in July 2026.

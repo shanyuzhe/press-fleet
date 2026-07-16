@@ -1,7 +1,7 @@
 {
   "name": "press-fleet",
   "description": "An open-book AI editorial fleet for solo media operators: source radar, six-role newsroom pipeline, deterministic quality gates, and a feedback-driven versioned SOP. Sibling project of research-fleet.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "shanyuzhe",
     "url": "https://github.com/shanyuzhe"

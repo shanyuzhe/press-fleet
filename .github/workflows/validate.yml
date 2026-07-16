@@ -1,0 +1,21 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  demo-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # The demo package must always pass: it is the living proof that the
+      # spec, the validator, and the hash-bound copyedit gate agree.
+      - name: Validate demo content package
+        run: python tools/validate_content_package.py examples/demo-package
+      - name: Copyedit hash is printable
+        run: python tools/validate_content_package.py examples/demo-package --print-copyedit-hash

@@ -51,6 +51,8 @@ Flag sections that remain equally valid after paragraph shuffling, repeat the sa
 - repeated “不是 A，而是 B” or three-part cadence without a real distinction;
 - “下面来看”“值得注意的是”“这意味着”等 meta narration where the relation should be stated directly;
 - self-labeling such as “最关键的一点是” without evidence that earns the emphasis;
+- the same verdict-reframe construction reused across the piece (“比 X 更要紧的是 Y”“真正的问题是 Z”式改判句反复出现) — used once it is a stance, used four times it is a tic;
+- the core thesis restated at section endings, in image captions, and in the closing without new information (the argument treadmill) — each return to the thesis must carry a new fact, boundary, or consequence, and a caption must add information the prose does not already state;
 - generic future-looking endings that could close any AI article.
 
 ### 4. Uniform rhythm and over-organization

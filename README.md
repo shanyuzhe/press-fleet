@@ -15,7 +15,9 @@ Mechanisms worth stealing even if you never install it:
 - **Roles with red lines** — the auditor can't rewrite, the writer can't invent facts, the copy editor can't restyle. Eight roles, one handoff contract.
 - **Hash-bound copyedit gate** — the sentence-level pass binds to a SHA-256 of the exact body; any later edit voids it. A zero-dependency validator enforces agreement between the draft, the copyedit record, and the actual bytes.
 - **Chinese-adapted AI-pattern diagnostic** — English word lists and stylometric thresholds are explicitly *not* gates for Chinese copy; the diagnostic targets real symptoms (repeated verdict-reframe constructions, stacked rhetorical questions, condescending register).
-- **Feedback as versioned changes** — comments, metrics, and issues become CHANGELOG entries with cited signals. See [lessons.md](docs/lessons.md) for the eight failures that produced the current rules.
+- **Feedback as versioned changes** — comments, metrics, and issues become CHANGELOG entries with cited signals. See [lessons.md](docs/lessons.md) for the real failures that produced the current rules — the list grows with every retro.
+
+Start with [`examples/demo-package/`](examples/demo-package/) — a minimal complete content package that passes the validator. Edit one character of its body, re-run the validator, and watch the hash gate fail.
 
 ## Runtimes
 
